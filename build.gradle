@@ -67,7 +67,7 @@ scmVersion {
   }
 }
 
-project.version = "0.10.0-lucidworks4"
+project.version = scmVersion.version
 
 // This disables the pedantic doclint feature of JDK8
 if (JavaVersion.current().isJava8Compatible()) {
