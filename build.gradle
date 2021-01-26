@@ -40,6 +40,7 @@ dependencies {
   compile BCPROV_JDK15ON
   compile MBASSADOR
   compile ASN_ONE
+  compile group: 'args4j', name: 'args4j', version: '2.33'
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
@@ -264,3 +265,8 @@ project.tasks.release.finalizedBy(project.tasks.forkedUploadRelease)
 
 project.tasks.jacocoTestReport.dependsOn(project.tasks.test)
 project.tasks.check.dependsOn(project.tasks.jacocoTestReport)
+
+task runApp(type:JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = "com.hierynomus.test.SmbTest"
+}
