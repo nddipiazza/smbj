@@ -74,12 +74,12 @@ public class DFSPathResolver implements PathResolver {
     @Override
     public SmbPath resolve(Session session, SMB2Packet responsePacket, SmbPath smbPath) throws PathResolveException {
         if (smbPath.getPath() != null && responsePacket.getHeader().getStatusCode() == NtStatus.STATUS_PATH_NOT_COVERED.getValue()) {
-            logger.info("DFS Share {} does not cover {}, resolve through DFS", smbPath.getShareName(), smbPath);
+            logger.debug("DFS Share {} does not cover {}, resolve through DFS", smbPath.getShareName(), smbPath);
             SmbPath target = SmbPath.parse(resolve(session, smbPath.toUncPath()));
-            logger.info("DFS resolved {} -> {}", smbPath, target);
+            logger.debug("DFS resolved {} -> {}", smbPath, target);
             return target;
         } else if (smbPath.getPath() == null && NtStatus.isError(responsePacket.getHeader().getStatusCode())) {
-            logger.info("Attempting to resolve {} through DFS", smbPath);
+            logger.debug("Attempting to resolve {} through DFS", smbPath);
             return SmbPath.parse(resolve(session, smbPath.toUncPath()));
         }
         return wrapped.resolve(session, responsePacket, smbPath);
@@ -94,14 +94,14 @@ public class DFSPathResolver implements PathResolver {
     public SmbPath resolve(Session session, SmbPath smbPath) throws PathResolveException {
         SmbPath target = SmbPath.parse(resolve(session, smbPath.toUncPath()));
         if (!smbPath.equals(target)) {
-            logger.info("DFS resolved {} -> {}", smbPath, target);
+            logger.debug("DFS resolved {} -> {}", smbPath, target);
             return target;
         }
         return wrapped.resolve(session, smbPath);
     }
 
     private String resolve(Session session, String uncPath) throws PathResolveException {
-        logger.info("Starting DFS resolution for {}", uncPath);
+        logger.debug("Starting DFS resolution for {}", uncPath);
         DFSPath dfsPath = new DFSPath(uncPath);
         ResolveState state = new ResolveState(dfsPath);
         DFSPath resolved = step1(session, state);
@@ -399,7 +399,8 @@ public class DFSPathResolver implements PathResolver {
             dfsSession = connection.authenticate(auth);
         }
 
-        try (Share dfsShare = dfsSession.connectShare("IPC$")) {
+        try {
+            Share dfsShare = dfsSession.connectShare("IPC$");
             return getReferral(type, dfsShare, path);
         } catch (Buffer.BufferException | IOException e) {
             throw new DFSException(e);
@@ -446,7 +447,7 @@ public class DFSPathResolver implements PathResolver {
             return;
         }
         ReferralCache.ReferralCacheEntry referralCacheEntry = new ReferralCache.ReferralCacheEntry(response, domainCache);
-        logger.info("Got DFS Referral result: {}", referralCacheEntry);
+        logger.debug("Got DFS Referral result: {}", referralCacheEntry);
         referralCache.put(referralCacheEntry);
         result.referralCacheEntry = referralCacheEntry;
     }
